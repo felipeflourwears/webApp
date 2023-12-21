@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <title>Budget PopAtelier</title>
+    
+        <!-- CSS FILES -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    
+        <!-- Flask static files -->
+        <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/bootstrap-icons.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/magnific-popup.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/templatemo-first-portfolio-style.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/index.css') }}" rel="stylesheet">
+    
+        <!-- Flask static image -->
+        <link rel="shortcut icon" href="{{ url_for('static', filename='images/popnav.png') }}" type="image/x-icon">
+    </head>
+    
+    <body>
+
+        <section class="preloader">
+            <div class="spinner">
+                <span class="spinner-rotate"></span>    
+            </div>
+        </section>
+
+        <nav class="navbar navbar-expand-lg">
+            <div class="container d-flex justify-content-center"> <!-- Añade estas clases para centrar -->
+                <a href="https://www.popatelier.net/" class="navbar-brand mx-auto mx-lg-0" target="_blank">
+                    <!-- Flask static image -->
+                    <img src="{{ url_for('static', filename='images/poptest.png') }}" alt="Logo" class="logo">
+                </a>
+            </div>
+        </nav>
+        
+                
+    
+
+        <br><br> <br><br> <br><br><br>
+
+        <header>
+            <h1 class="titleh1">Smart Budget&nbsp;<i class="bi bi-archive-fill"></i></h1>
+        </header>
+        
+        <form action="#" method="POST">
+            <div class="main-wrapper">
+                <main>
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-4 col-md-4">
+                                <div class="form-group">
+                                    <label class="bmd-label-floating">Smart Display Kit Quantity:</label>
+                                    <div class="input-group">
+                                        <input type="number" name="cantidad" class="form-control input-number"  style="width: 60px;" value="1" min="1" >
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="button" id="addHeaderBtn" class="btn btn-magenta-dark">Add Header</button>
+                                <button type="button" id="deleteHeaderBtn" class="btn btn-danger"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </div>
+
+                        <br>
+                        <div class="row">
+                            
+                        </div>
+                        <div class="headers-container">
+                            <!-- Aquí se agregarán dinámicamente los campos de entrada -->
+                        </div>
+                        <br>
+                    </div>
+                </main>
+            </div>
+
+            <div class="main-wrapper">
+                <main>
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="button" id="addShielfBtn" class="btn btn-magenta-dark">Add Shelf</button>
+                                <button type="button" id="deleteShielfBtn" class="btn btn-danger"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </div>
+
+                        <br>
+                        <div class="row">
+                            
+                        </div>
+                        <div class="shielfs-container">
+                            <!-- Aquí se agregarán dinámicamente los campos de entrada -->
+                        </div>
+                        <br>
+                        <button type="button" id="addToListBtn" class="btn btn-lilac-metallic">Add to list</button>
+                        <button class="btn btn-generar-pdf btn-success" type="button" id="btn-generar" onclick="generarPDF(event)">Generate PDF</button>
+
+                    </div>
+                </main>
+            </div>
+            <!-- <div id="totalPriceDisplay"></div> -->
+            <div id="dataDisplay">Lotes</div>
+            <br>
+        </form>
+
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="{{ url_for('static', filename='js/generate-hs.js') }}"></script>
+
+        <script>
+        var currentBatch = 1; // Inicializar el contador de lotes
+        var preciosPorSeleccion = {
+            'Pitch 2 Header': 1392.391,
+            'Pitch 1.8 Header': 2086.5,
+            'Pitch 1.5 Header': 2386.8,
+            'Pitch 1.2 Header': 3110.276,
+
+            'Pitch 2 Header': 1189.864,
+            'Pitch 1.8 Header': 1431.3,
+            'Pitch 1.5 Header': 1627.47,
+            'Pitch 1.2 Header': 2386.956,
+
+            'Pitch 2 Header': 848.9,
+            'Pitch 1.8 Header': 1171.3,
+            'Pitch 1.5 Header': 1232.4,
+            'Pitch 1.2 Header': 1656.2,
+
+            'Pitch 2 Header': 848.9,
+            'Pitch 1.8 Header': 1171.3,
+            'Pitch 1.5 Header': 1232.4,
+            'Pitch 1.2 Header': 1656.2,
+
+            'Pitch 1.8 Shelf': 640.9,
+            'Pitch 1.5 Shelf': 672.1,
+            'Pitch 1.2 Shelf': 861.9,
+
+            'Pitch 1.8 Shelf': 456.3,
+            'Pitch 1.5 Shelf': 533,
+            'Pitch 1.2 Shelf': 655.2,
+
+            'Pitch 1.8 Shelf': 362.7,
+            'Pitch 1.5 Shelf': 440.7,
+            'Pitch 1.2 Shelf': 487.5,
+
+            'Pitch 1.8 Shelf': 555.1,
+            'Pitch 1.5 Shelf': 617.5,
+            'Pitch 1.2 Shelf': 679.9
+        };
+
+        //Prices
+        var video_procesor = 377.988;
+        var freight_import_taxes = 487.20;
+        var install = 931.02;
+        var cms = 152.1;
+        var noc = 720;
+        var totalFixed;
+
+        // Calcular la suma de los precios
+        totalFixed = video_procesor + freight_import_taxes + install + cms + noc;
+
+        function calcularDescuentoPorLotes(cantidadLotes) {
+                if (cantidadLotes >= 150 && cantidadLotes <= 500) {
+                    return 0.00; // Sin descuento
+                } else if (cantidadLotes >= 501 && cantidadLotes <= 1000) {
+                    return 0.02; // Descuento del 2%
+                } else if (cantidadLotes >= 1001 && cantidadLotes <= 2000) {
+                    return 0.035; // Descuento del 3.5%
+                } else if (cantidadLotes >= 2001 && cantidadLotes <= 3000) {
+                    return 0.05; // Descuento del 5%
+                } else if (cantidadLotes > 3000) {
+                    return 0.075; // Descuento del 7.5%
+                } else {
+                    return 0; // Sin descuento
+                }
+        }
+
+        
+        </script>
+
+
+        <script>
+           $(document).ready(function() {
+            function saveDataToStorage(data, batch) {
+                localStorage.setItem('itemsData' + batch, JSON.stringify(data));
+            }
+
+            function updateDataDisplay() {
+                var dataDisplay = $('#dataDisplay');
+                dataDisplay.empty(); // Limpiar el contenido actual
+                var totalPriceDisplay = $('#totalPriceDisplay'); // Obtener el div para mostrar el precio total
+                totalPriceDisplay.empty();
+
+                var totalAllBatchesPrice = 0; // Inicializar el precio total de todos los lotes
+                var cantidadLotes = 0; // Inicializar la cantidad de lotes
+
+                for (var i = 1; i < currentBatch; i++) {
+                    var storedData = JSON.parse(localStorage.getItem('itemsData' + i));
+                    cantidadLotes++;
+
+                    if (storedData !== null) { // Verificar si storedData no es nulo
+                        var totalPricePerBatch = 0; // Inicializar el precio total del lote actual
+
+                        var table = $('<table class="batch-table"></table>');
+
+                        // Calcular el precio total del lote actual
+                        storedData.forEach(function(item) {
+                            var itemKey = item.size;
+                            if (preciosPorSeleccion.hasOwnProperty(itemKey)) {
+                                var pricePerItem = preciosPorSeleccion[itemKey];
+                                var totalForItem = pricePerItem * item.quantity;
+                                totalPricePerBatch += totalForItem;
+                            }
+                        });
+
+                        // Agregar el total fijo al precio total del lote actual
+                        totalPricePerBatch += totalFixed;
+
+                        // Actualizar el total de todos los lotes sumados
+                        totalAllBatchesPrice += totalPricePerBatch;
+
+                        // Crear fila para mostrar el precio total del lote
+                       /*  var totalRow = $('<tr><td colspan="4"><strong>Price KIT(Including prices for requeriments) ' + i + ': $ ' + totalPricePerBatch + '</strong></td></tr>');
+                        table.append(totalRow); */
+
+
+                        // Crear la cabecera de la tabla
+                        var thead = $('<thead><tr><th colspan="8">OPTION ' + i + '</th></tr></thead>');
+                        table.append(thead);
+
+                        var thead = $('<thead><tr>' +
+                        '<th>Product</th>' +
+                        '<th>Size</th>' +
+                        '<th>Quantity</th>' +
+                        '<th>Price per Item</th>' +
+                        '<th>Total price</th>' +
+                        '<th>' +
+                        '<button class="btn delete-batch-btn btn-danger" data-batch="' + i + '"><i class="bi bi-trash"></i></button>' +
+                        '</th>' +
+                        '</tr></thead>');
+
+                        table.append(thead);
+
+
+
+                        var tbody = $('<tbody></tbody>');
+
+                        // Crear filas para cada elemento en el lote
+                        storedData.forEach(function(item) {
+                            var row = $('<tr></tr>');
+                            for (var key in item) {
+                                console.log(item)
+                                if (item.hasOwnProperty(key)) {
+                                    /* row.append('<td><strong>' + key + '</strong></td>'); */
+                                    console.log("debugging init")
+                                    if (item[key].indexOf("Pitch") !== -1) {
+                                        console.log("Tiene 'Pitch':", item[key]);
+                                        var stringWithoutLastFive = item[key].slice(0, -6);
+                                        console.log("Sin los últimos 5 dígitos:", stringWithoutLastFive);
+                                        row.append('<td>' + stringWithoutLastFive + '</td>');
+                                        console.log("debugging end")
+                                    }else{
+                                        
+                                        row.append('<td>' + item[key] + '</td>');
+                                    }
+                                }
+                            }
+
+                            // Agregar columna para el precio total por tipo y tamaño
+                            var itemKey = item.size;
+                            console.log("ITEM KEY LF:", itemKey)
+                            console.log(preciosPorSeleccion)
+                            
+                            if (preciosPorSeleccion.hasOwnProperty(itemKey)) {
+                                console.log("Entre prices")
+                                var pricePerItem = preciosPorSeleccion[itemKey];
+                                var totalForItem = pricePerItem * item.quantity;
+
+                                // Formatear los números con comas como separadores de miles
+                                var formattedPricePerItem = pricePerItem.toLocaleString('en-US');
+                                var formattedTotalForItem = totalForItem.toLocaleString('en-US');
+
+                                row.append('<td> $ ' + formattedPricePerItem + '</td>');
+                                row.append('<td><strong>$ ' + formattedTotalForItem + '</strong></td>');
+                            }
+
+                            tbody.append(row);
+                        });
+
+                        table.append(tbody);
+                        dataDisplay.append(table);
+                    }
+                }
+
+                // Calcular el descuento basado en la cantidad de lotes
+                var descuentoPorLotes = calcularDescuentoPorLotes(cantidadLotes);
+                var descuentoTotal = totalAllBatchesPrice * descuentoPorLotes;
+                var precioFinal = totalAllBatchesPrice - descuentoTotal;
+
+                // Mostrar el descuento aplicado
+                var descuentoRow = $('<div>Discount applied: $ ' + descuentoTotal.toFixed(2) + '</div>');
+                descuentoRow.css({
+                    'font-weight': 'bold',
+                    'font-size': '1.2em',
+                    'color': 'red' // Puedes cambiar el color según tu preferencia
+                });
+
+                totalPriceDisplay.append(descuentoRow);
+
+                // Mostrar el precio final después de aplicar el descuento
+                var precioFinalRow = $('<div>Final price after discount: $ ' + precioFinal.toFixed(2) + '</div>');
+                precioFinalRow.css({
+                    'font-weight': 'bold',
+                    'font-size': '1.2em',
+                    'color': 'black' // Puedes cambiar el color según tu preferencia
+                });
+
+                totalPriceDisplay.append(precioFinalRow);
+
+            }
+
+
+
+            // Función para eliminar un lote al hacer clic en el botón "Delete Batch"
+            $(document).on('click', '.delete-batch-btn', function() {
+                var batchNumber = $(this).data('batch');
+                var confirmation = confirm('Are you sure delete this batch ' + batchNumber + '?');
+
+                if (confirmation) {
+                    localStorage.removeItem('itemsData' + batchNumber);
+                    updateDataDisplay();
+                }
+            });
+
+
+            $('#addToListBtn').click(function() {
+                var headerItems = $('.headers-container .row');
+                var shielfItems = $('.shielfs-container .row');
+
+                // Imprimir el resultado en la consola
+                console.log('El total por lote: ', totalFixed);
+
+                var currentBatchItems = []; // Array para el lote actual
+                var itemsByTypeAndSize = {};
+
+                headerItems.each(function() {
+                    var headerSize = $(this).find('select[name="headerSize"]').val();
+                    var headerSizePi = $(this).find('select[name="headerSizePi"]').val();
+                    var quantity = $(this).find('input[name="quantity"]').val();
+                    var key = headerSizePi; // Generar clave de tipo y tamaño
+                    var key = 'Pitch'+ ' '+ headerSizePi + ' ' + 'Header'; 
+
+                    // Almacenar el artículo en la estructura de datos itemsByTypeAndSize
+                    if (!itemsByTypeAndSize[key]) {
+                        itemsByTypeAndSize[key] = {
+                            type: 'Header',
+                            size: key,
+                            quantity: 0
+                        };
+                    }
+                    itemsByTypeAndSize[key].quantity += parseInt(quantity); // Actualizar la cantidad
+
+                    currentBatchItems.push({
+                        type: 'Header',
+                        size: key,
+                        quantity: quantity
+                    });
+                });
+
+                shielfItems.each(function() {
+                    var shielfSize = $(this).find('select[name="shielfSize"]').val();
+                    var piShielf = $(this).find('select[name="piShielf"]').val();
+                    var quantity = $(this).find('input[name="quantity"]').val();
+                    var key = 'Pitch'+ ' '+ piShielf + ' ' + 'Shelf'; // Generar clave de tipo y tamaño
+
+                    // Almacenar el artículo en la estructura de datos itemsByTypeAndSize
+                    if (!itemsByTypeAndSize[key]) {
+                        itemsByTypeAndSize[key] = {
+                            type: 'Shelf',
+                            size: key,
+                            quantity: 0
+                        };
+                    }
+                    itemsByTypeAndSize[key].quantity += parseInt(quantity); // Actualizar la cantidad
+
+                    currentBatchItems.push({
+                        type: 'Shelf',
+                        size: key,
+                        quantity: quantity
+                    });
+                });
+
+                var totalQuantity = $('input[name="cantidad"]').val(); // Obtener el valor del input 'Total Quantity'
+
+                //LF
+                // Calcula el valor total multiplicando totalQuantity por totalFixed
+                const totalValue = totalQuantity * totalFixed;
+
+                // Formatea totalQuantity como cantidad sin símbolo de dólar
+                const formattedTotalQuantity = totalQuantity.toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+                });
+
+                // Formatea el valor total como cantidad monetaria
+                const formattedTotalValue = '$' + totalValue.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+                });
+
+                // Crea la cadena con el formato deseado
+                const formattedSize = `${formattedTotalValue}`;
+
+                // Agregar el valor de 'Total Quantity' al objeto currentBatchItems
+                currentBatchItems.push({
+                    type: 'Mandatory KITS',
+                    size: formattedSize,
+                    quantity: totalQuantity,
+                });
+
+                 // Restablecer el valor del input a '1' para el próximo lote
+                $('input[name="cantidad"]').val('1');
+
+
+                // Guardar el lote actual en localStorage con una clave diferente para cada lote
+                localStorage.setItem('itemsData' + currentBatch, JSON.stringify(currentBatchItems));
+                console.log('Lote ' + currentBatch + ': ', currentBatchItems);
+
+                currentBatch++; // Incrementar el contador para el próximo lote
+                updateDataDisplay(); // Actualizar la visualización de los datos
+
+
+                var headerItems = $('.headers-container .row');
+                var shielfItems = $('.shielfs-container .row');
+
+                // Restablecer los campos de entrada en headers-container y shielfs-container
+                $('.headers-container').empty();
+                $('.shielfs-container').empty();
+
+                // Calcular el precio total por lote
+                var totalPricePerLote = totalFixed;
+                currentBatchItems.forEach(function(item) {
+                    var key = item.size;
+                    if (preciosPorSeleccion.hasOwnProperty(key)) {
+                        totalPricePerLote += preciosPorSeleccion[key] * item.quantity;
+                    }
+                });
+
+                // Calcular el precio total por lote multiplicado por la cantidad total
+                var totalPriceForAllItems = totalPricePerLote * totalQuantity;
+                console.log('El precio total por lote multiplicado por la cantidad total es: ' + totalPriceForAllItems);
+
+                
+                //////
+            });
+
+            // Mostrar los datos al cargar la página
+            updateDataDisplay();
+        });
+        </script>
+
+    <script>
+
+
+
+
+    </script>
+
+
+
+
+        <!-- JAVASCRIPT FILES -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.4/jspdf.debug.js"></script>
+        <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/jquery.sticky.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/click-scroll.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/jquery.magnific-popup.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/magnific-popup-options.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/custom.js') }}"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="{{ url_for('static', filename='js/generate-pdf.js') }}"></script>
+
+
+    </body>
+</html>
