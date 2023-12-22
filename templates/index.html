@@ -101,7 +101,7 @@
                         </div>
                         <br>
                         <button type="button" id="addToListBtn" class="btn btn-lilac-metallic">Add to list</button>
-                        <button class="btn btn-generar-pdf btn-success" type="submit" id="btn-generar" onclick="generarPDF(event)">Generate PDF</button>
+                        <button class="btn btn-generar-pdf btn-success" type="button" id="btn-generar" onclick="generarPDFLF()">Generate PDF</button>
 
                     </div>
                 </main>
@@ -112,7 +112,12 @@
         </form>
 
 
- 
+        <script>
+             function generarPDFLF() {
+            // Redireccionar al endpoint de Flask para generar el PDF
+            window.location.href = '/generar_pdf';
+        }
+        </script>
 
 
 
@@ -129,6 +134,7 @@
         <script src="{{ url_for('static', filename='js/magnific-popup-options.js') }}"></script>
         <script src="{{ url_for('static', filename='js/custom.js') }}"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="{{ url_for('static', filename='js/generate-pdf.js') }}"></script>
 
 
     </body>

@@ -1,3 +1,46 @@
+function generarPDF() {
+    var allBatchData = []; // Array para almacenar todos los lotes
+
+    // Obtener todos los lotes del localStorage
+    for (var i = 1; i < currentBatch; i++) {
+        var storedData = localStorage.getItem('itemsData' + i);
+
+        if (storedData !== null) {
+            var parsedData = JSON.parse(storedData);
+            allBatchData = allBatchData.concat(parsedData);
+        }
+    }
+
+    // Verificar si hay datos para enviar al servidor
+    if (allBatchData.length > 0) {
+        // Realizar una solicitud POST al backend (Flask) con todos los lotes
+        fetch('/pdf', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ datos: allBatchData })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al enviar los datos');
+            }
+            return response.text(); // Espera recibir un texto como respuesta
+        })
+        .then(data => {
+            console.log('Respuesta del servidor:', data);
+            // Mostrar la respuesta del servidor en la consola del navegador
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Manejar errores si la comunicación con el servidor falla
+        });
+    } else {
+        console.log('No se encontraron datos para enviar al servidor');
+    }
+}
+
+
 var currentBatch = 1; // Inicializar el contador de lotes
 var preciosPorSeleccion = {
     'Pitch 2 120 Header': 1392.391,
@@ -273,8 +316,13 @@ $(document).ready(function() {
             }
         });
 
+        // Verificar si los datos del localStorage están disponibles antes de llamar a generarPDF
+        //generarPDF();
+
     });
 
     // Mostrar los datos al cargar la página
     updateDataDisplay();
 });
+
+
