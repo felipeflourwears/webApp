@@ -22,7 +22,7 @@
     font-size: 14px;
     border-collapse: collapse;
     margin: 0 auto;
-    border: 2px solid green;
+    border: 2px solid #6a5acd;
     box-sizing: border-box;
     width: 100%;
     }
@@ -102,5 +102,35 @@
       color: #fff;
     }
     
+
+  /* Estilos para la tabla */
+table.batch-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+table.batch-table th,
+table.batch-table td {
+  border: 1px solid #6a5acd;
+  padding: 8px;
+  text-align: left;
+}
+
+table.batch-table th {
+  background-color: #6a5acd;
+  color: white;
+  text-align: center; /* Centra el texto del encabezado */
+}
+
+table.batch-table tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+table.batch-table tbody tr:hover {
+  background-color: #ddd;
+}
+
+
     
     
