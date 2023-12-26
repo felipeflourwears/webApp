@@ -4,11 +4,6 @@ import pdfkit
 
 app = Flask(__name__)
 
-# Establecer la ruta a wkhtmltopdf
-config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
-pdfkit.from_string('Hello World!', 'out.pdf', configuration=config)
-
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -27,23 +22,42 @@ def generar_pdf_desde_datos():
     else:
         return 'Datos vacíos recibidos. No se puede procesar.'
 
-@app.route('/generar_pdf', methods=['GET'])
+@app.route('/generar_pdf', methods=['POST'])
 def generar_pdf():
-    pdfkit_options = {
-        'page-size': 'A4',
-        # Otras opciones de configuración si las necesitas
-    }
 
-    # Contenido del PDF que quieres generar
-    contenido_pdf = '<h1>¡Hola, este es tu PDF generado con Flask y pdfkit!</h1>'
+    # Ruta al ejecutable wkhtmltopdf en tu sistema
+    ruta_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
+    config = pdfkit.configuration(wkhtmltopdf=ruta_wkhtmltopdf)
+    
+    try:
+        datos_recibidos = request.json.get('datos')
+        print(datos_recibidos)
 
-    pdf = pdfkit.from_string(contenido_pdf, False, configuration=config, options=pdfkit_options)
+        # Construir el contenido del PDF usando los datos recibidos
+        contenido_pdf = '<h1>Información del LocalStorage</h1>'
+        contenido_pdf += '<ul>'
+        for data in datos_recibidos:
+            contenido_pdf += f'<li>{data}</li>'
+        contenido_pdf += '</ul>'
 
-    response = make_response(pdf)
-    response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = 'attachment; filename=mi_pdf.pdf'
+        pdfkit_options = {
+            'page-size': 'A4',
+            'encoding': 'UTF-8',  # Especificar la codificación UTF-8
+            # Otras opciones de configuración si las necesitas
+        }
 
-    return response
+        # Generar el PDF
+        pdf = pdfkit.from_string(contenido_pdf, False, configuration=config, options=pdfkit_options)
+
+        # Crear la respuesta con el PDF como descarga
+        response = make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = 'attachment; filename=mi_pdf.pdf'
+
+        return response
+    except Exception as e:
+        print("Error:", e)  # Imprime el error en la consola del servidor
+        return "Error al generar el PDF", 500
 
 
 if __name__ == '__main__':

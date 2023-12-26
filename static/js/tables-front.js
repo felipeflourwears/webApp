@@ -1,43 +1,42 @@
-function generarPDF() {
-    var allBatchData = []; // Array para almacenar todos los lotes
-
-    // Obtener todos los lotes del localStorage
+function generarPDFLF() {
+    var allBatchData = []; // Obtener datos del Local Storage
     for (var i = 1; i < currentBatch; i++) {
         var storedData = localStorage.getItem('itemsData' + i);
-
         if (storedData !== null) {
             var parsedData = JSON.parse(storedData);
             allBatchData = allBatchData.concat(parsedData);
         }
     }
 
-    // Verificar si hay datos para enviar al servidor
-    if (allBatchData.length > 0) {
-        // Realizar una solicitud POST al backend (Flask) con todos los lotes
-        fetch('/pdf', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ datos: allBatchData })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Error al enviar los datos');
-            }
-            return response.text(); // Espera recibir un texto como respuesta
-        })
-        .then(data => {
-            console.log('Respuesta del servidor:', data);
-            // Mostrar la respuesta del servidor en la consola del navegador
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            // Manejar errores si la comunicación con el servidor falla
-        });
-    } else {
-        console.log('No se encontraron datos para enviar al servidor');
-    }
+    // Enviar solicitud al backend para generar el PDF
+    fetch('/generar_pdf', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ datos: allBatchData })
+    })
+    .then(response => {
+        // Manejar la respuesta del servidor (por ejemplo, descargar el PDF)
+        if (response.ok) {
+            return response.blob().then(blob => {
+                const url = window.URL.createObjectURL(new Blob([blob]));
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'mi_pdf.pdf';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            });
+        } else {
+            // Manejar errores de la respuesta
+            console.error('Error al generar el PDF');
+        }
+    })
+    .catch(error => {
+        // Manejar errores de la solicitud
+        console.error('Error al generar el PDF:', error);
+    });
 }
 
 
@@ -191,7 +190,6 @@ $(document).ready(function() {
                 dataDisplay.append(table);
             }
         }
-
        
     }
 
