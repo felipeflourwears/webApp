@@ -1,5 +1,8 @@
 from flask import Flask, render_template, redirect, url_for, request, jsonify, send_file, make_response
 import pdfkit
+import os
+import base64
+from collections import defaultdict
 
 
 app = Flask(__name__)
@@ -24,21 +27,453 @@ def generar_pdf_desde_datos():
 
 @app.route('/generar_pdf', methods=['POST'])
 def generar_pdf():
+    #Data Frontend
+    datos_recibidos = request.json.get('datos')
+
+    
 
     # Ruta al ejecutable wkhtmltopdf en tu sistema
     ruta_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
     config = pdfkit.configuration(wkhtmltopdf=ruta_wkhtmltopdf)
     
+    # Ruta del directorio actual del script
+    ruta_script = os.path.dirname(os.path.abspath(__file__))
+    # Ruta de la imagen
+    ruta_imagen = os.path.join(ruta_script, 'static','images', 'black.jpg')
+    print("RUTA Imagen: ", ruta_imagen)
+
+    # Leer la imagen en formato base64
+    with open(ruta_imagen, 'rb') as img_file:
+        img_base64 = base64.b64encode(img_file.read()).decode('utf-8')
+
+    #Obligatory Requirements
+   
+    video_procesor = 377.988
+    freight_import_taxes = 487.20
+    install = 931.02
+    cms = 152.1
+    noc = 720
+    totalFixed = 0
+
+    #Calcular la suma de los precios
+    totalFixed = video_procesor + freight_import_taxes + install + cms + noc
+
+    # Define the dictionary with a default value of 0 for new keys
+    precios_por_tamano = defaultdict(float, {
+        'Pitch 2 120 Header': 1392.391,
+        'Pitch 1.8 120 Header': 2086.5,
+        'Pitch 1.5 120 Header': 2386.8,
+        'Pitch 1.2 120 Header': 3110.276,
+
+        'Pitch 2 90 Header': 1189.864,
+        'Pitch 1.8 90 Header': 1431.3,
+        'Pitch 1.5 90 Header': 1627.47,
+        'Pitch 1.2 90 Header': 2386.956,
+
+        'Pitch 2 60 Header': 848.9,
+        'Pitch 1.8 60 Header': 1171.3,
+        'Pitch 1.5 60 Header': 1232.4,
+        'Pitch 1.2 60 Header': 1656.2,
+
+        'Pitch 2 45 Header': 848.9,
+        'Pitch 1.8 45 Header': 1171.3,
+        'Pitch 1.5 45 Header': 1232.4,
+        'Pitch 1.2 45 Header': 1656.2,
+
+        'Pitch 1.8 120 Shelf': 640.9,
+        'Pitch 1.5 120 Shelf': 672.1,
+        'Pitch 1.2 120 Shelf': 861.9,
+
+        'Pitch 1.8 90 Shelf': 456.3,
+        'Pitch 1.5 90 Shelf': 533,
+        'Pitch 1.2 90 Shelf': 655.2,
+
+        'Pitch 1.8 60 Shelf': 362.7,
+        'Pitch 1.5 60 Shelf': 440.7,
+        'Pitch 1.2 60 Shelf': 487.5,
+
+        'Pitch 1.8 45 Shelf': 555.1,
+        'Pitch 1.5 45 Shelf': 617.5,
+        'Pitch 1.2 45 Shelf': 679.9
+    })
+    
+    #Total Mandatory Items
+    # Obtener la suma de las cantidades de los elementos de tipo "Mandatory items"
+    quantityMandatoryItems = sum(int(data['quantity']) for data in datos_recibidos if data['type'] == 'Mandatory items')
+
+    # Multiplicar la suma por totalFixed
+    totalMandatoryItems = '{:,.3f}'.format(quantityMandatoryItems * totalFixed)
+
+    print("quantityMandatoryItems: ", quantityMandatoryItems)
+    print("totalMandatoryItems: ", totalMandatoryItems)
+    
+    
+    
     try:
-        datos_recibidos = request.json.get('datos')
-        print(datos_recibidos)
+        print("DATA PDF: ", datos_recibidos)
+
+        # Procesamiento para calcular totales de Header y Shelf por lote
+        totales_lote = []
+        grand_total_lote = []
+        total_por_tipo = defaultdict(float)
+        contador = 0
+        informacion_lotes = []
+
+        for lote in datos_recibidos:
+            tipo = lote['type']
+            tamano = lote['size']
+            cantidad = int(lote['quantity'])
+
+            precio_por_item = precios_por_tamano.get(tamano, 0)
+            precio_total_por_item = precio_por_item * cantidad
+            print("COL: ", cantidad, tipo, tamano, precio_por_item, precio_total_por_item)
+
+            if tipo in ('Header', 'Shelf'):
+                total_por_tipo[tipo] += precio_total_por_item
+                
+            elif tipo == 'Mandatory items':
+                totales_lote.append(total_por_tipo.copy())
+                grand_total_lote.append(total_por_tipo.copy())
+                total_por_tipo = defaultdict(float)
+
+                # Calcular los totales de Header y Shelf para el lote actual
+                totales_headers = sum(l['Header'] for l in totales_lote)
+                totales_shelfs = sum(l['Shelf'] for l in totales_lote)
+                total_option = totales_headers + totales_shelfs
+                print(lote, " HEADER T: ", totales_headers)
+                print(lote, " SHELFS T: ", totales_shelfs)
+                print(lote, " TotalOption T: ", total_option)
+
+                # Reiniciar los totales a cero para el próximo lote
+                totales_lote = []
+                totales_headers = 0
+                totales_shelfs = 0
+
+        totales_headers_g = sum(l['Header'] for l in grand_total_lote)
+        totales_shelfs_g = sum(l['Shelf'] for l in grand_total_lote)
+        total_smart_display = totales_shelfs_g + totales_headers_g
+        print("H: ", totales_headers_g)
+        print("S: ", totales_shelfs_g)
+        print("Total Smart Display: ", total_smart_display)
+
+        contenido_pdf = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>PDF</title>
+                <style>
+                    header {{
+                        text-align: center;
+                    }}
+                    img {{
+                        max-width: 500px;
+                    }}
+                    .info {{
+                        text-align: left;
+                        font-size: 20px;
+                        margin-top: 10px;
+                        margin-left: 10px;
+                    }}
+                    .table-container {{
+                        margin-top: 20px;
+                        margin-left: 10px;
+                        width: 98%;
+                    }}
+                    .headers-doc{{
+                        margin-top: 50px;
+                    }}
+                    table {{
+                        border-collapse: collapse;
+                        width: 100%;
+                        margin-top: 10px;
+                    }}
+                    th, td {{
+                        border: 1px solid black;
+                        padding: 8px;
+                        text-align: left;
+                        vertical-align: top; /* Alineación vertical */
+                        line-height: 1.4; /* Ajuste del espaciado vertical */
+                    }}
+                    th {{
+                        background-color: black;
+                        color: white;
+                        text-align: center;
+                    }}
+                    hr {{
+                        margin-top: 50px;
+                        border: none;
+                        border-top: 2px solid black;
+                        width: 100%;
+                    }}
+                    .total-left{{
+                        text-align: right;
+                    }}
+                    .grand-total {{
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 10px;
+                    }}
+
+                    .grand-total table {{
+                        width: 100%;
+                        border-collapse: collapse;
+                    }}
+
+                    .grand-total th,
+                    .grand-total td {{
+                        border: 1px solid black;
+                        padding: 8px;
+                        text-align: right;
+                    }}
+
+                    .grand-total th:nth-child(1),
+                    .grand-total td:nth-child(1) {{
+                        width: 200px; /* Ancho fijo para el primer columna (Total mandatory items y Total smart display kits) */
+                    }}
+
+                    .grand-total th:nth-child(2),
+                    .grand-total td:nth-child(2) {{
+                        width: 150px; /* Ancho fijo para el segunda columna ($ 1,404.0) */
+                    }}
+
+                    .grand-total th:nth-child(3),
+                    .grand-total td:nth-child(3) {{
+                        width: 150px; /* Ancho fijo para el tercera columna (Grand Total y $ 4,072.31) */
+                    }}
+
+                    .grand-total th {{
+                        background-color: black;
+                        color: white;
+                        text-align: left;
+                    }}
+                    .feauture-total {{
+                        font-size: 20px;
+                    }}
+                </style>
+            </head>
+            <body>
+                <header>
+                    <img src="data:image/jpeg;base64,{img_base64}" alt="Logo"> <!-- Imagen incrustada en formato base64 -->
+                    <div class="info">
+                        <p><strong>POP ATELIER LLC</strong></p>
+                        <p><strong>Concept:</strong> Quotation</p>
+                        <p><strong>Date:</strong> 5/12/2023</p>
+                    </div>
+                </header>
+                <div class="table-container">
+                    <h2 class="headers-doc">Mandatory items: </h2>
+                    <table>
+                        <tr>
+                            <th>Item</th>
+                            <th>Cost</th>
+                        </tr>
+                        <tr>
+                            <td>Video processor + 4G card</td>
+                            <td class="total-left">$ 377.99</td>
+                        </tr>
+                        <tr>
+                            <td>Freight + import taxes</td>
+                            <td class="total-left">$ 487.20</td>
+                        </tr>
+                        <tr>
+                            <td>Installation</td>
+                            <td class="total-left">$ 931.02</td>
+                        </tr>
+                        <tr>
+                            <td>CMS annual fee</td>
+                            <td class="total-left">$ 152.10</td>
+                        </tr>
+                        <tr>
+                            <td>NOC + cell data annual fee</td>
+                            <td class="total-left">$ 152.10</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total</strong></td>
+                            <td class="total-left"><strong>$ 2,668.31</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Mandatory items: {quantityMandatoryItems}</strong></td>
+                            <td class="total-left"><strong>$ {totalMandatoryItems}</strong></td>
+                        </tr>
+                    </table>
+                </div>
+        """
 
         # Construir el contenido del PDF usando los datos recibidos
-        contenido_pdf = '<h1>Información del LocalStorage</h1>'
-        contenido_pdf += '<ul>'
-        for data in datos_recibidos:
-            contenido_pdf += f'<li>{data}</li>'
-        contenido_pdf += '</ul>'
+        contenido_pdf += """
+            <hr>
+            <h2 class="headers-doc">Smart Display Kit: </h2>
+            <hr>
+            <div class="table-container">
+            <h3 class="">Option 1: </h3>
+            <table>
+                <tr>
+                    <th>Quantity</th>
+                    <th>Type</th>
+                    <th>Size</th>
+                    <th>Price per item</th>
+                    <th> Total price per item</th>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>Header</td>
+                    <td>Pitch 2</td>
+                    <td>$ 848.90</td>
+                    <td class="total-left">$ 848.90</td>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>Header</td>
+                    <td>Pitch 2</td>
+                    <td>$ 848.90</td>
+                    <td class="total-left">$ 848.90</td>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>Shelf</td>
+                    <td>Pitch 2</td>
+                    <td>$ 848.90</td>
+                    <td class="total-left">$ 848.90</td>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>Shelf</td>
+                    <td>Pitch 2</td>
+                    <td>$ 848.90</td>
+                    <td class="total-left">$ 848.90</td>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>Shelf</td>
+                    <td>Pitch 2</td>
+                    <td>$ 848.90</td>
+                    <td class="total-left">$ 848.90</td>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>Shelf</td>
+                    <td>Pitch 2</td>
+                    <td>$ 848.90</td>
+                    <td class="total-left">$ 848.90</td>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>Shelf</td>
+                    <td>Pitch 2</td>
+                    <td>$ 848.90</td>
+                    <td class="total-left">$ 848.90</td>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>Shelf</td>
+                    <td>Pitch 2</td>
+                    <td>$ 848.90</td>
+                    <td class="total-left">$ 848.90</td>
+                </tr>
+                <tr>
+                    <td><strong>Smart Display</strong></td>
+                    <td class="total-left" colspan="4"><strong>5</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>Headers Total</strong></td>
+                    <td class="total-left" colspan="4"><strong>$15,000</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>Shelfs Total</strong></td>
+                    <td class="total-left" colspan="4"><strong>$15,000</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>Total Option 1</strong></td>
+                    <td class="total-left" colspan="4"><strong>$30,000</strong></td>
+                </tr>
+            </table>
+        """
+
+        for lote in datos_recibidos:
+            
+            tipo = lote['type']
+            tamano = lote['size']
+            cantidad = int(lote['quantity'])
+
+            
+            # Crear un diccionario con la información del lote actual y agregarlo al arreglo
+            if tipo != "Mandatory items":
+                informacion_lote_actual = {
+                    'tipo': tipo,
+                    'tamano': tamano,
+                    'cantidad': cantidad
+                    # Puedes agregar más información si es necesaria
+                }
+    
+                informacion_lotes.append(informacion_lote_actual)
+                print("INFORMACION de lotes ", informacion_lotes)
+
+           
+
+            precio_por_item = precios_por_tamano.get(tamano, 0)
+            precio_total_por_item = precio_por_item * cantidad
+            print("COL: ", cantidad, tipo, tamano, precio_por_item, precio_total_por_item)
+
+            if tipo in ('Header', 'Shelf'):
+                total_por_tipo[tipo] += precio_total_por_item
+                
+            elif tipo == 'Mandatory items':
+                contador += 1
+                contenido_pdf += f"""<h3 class=''>Option: {contador}</h3>
+                <table>
+                <tr>
+                    <th>Quantity</th>
+                    <th>Type</th>
+                    <th>Size</th>
+                    <th>Price per item</th>
+                    <th> Total price per item</th>
+                </tr> """
+                for lot in informacion_lotes:
+                    tipoL = lot['tipo']
+                    tamanoL = lot['tamano']
+                    cantidadL = lot['cantidad']
+                    print("LOTE DE LOTES: ", tipoL, tamanoL, cantidadL)
+                    contenido_pdf += f"""
+                    <tr>
+                        <td>{tipoL}</td>
+                        <td>{tamanoL}</td>
+                        <td>{cantidadL}</td>
+                        <td>0</td>
+                        <td class="total-left">0</td>
+                    </tr>
+                    """
+                
+                
+                contenido_pdf += f"""
+                <tr>
+                    <td>{cantidad}</td>
+                    <td>{tipo}</td>
+                    <td>{tamano}</td>
+                    <td>${precio_por_item}</td>
+                    <td class="total-left">${precio_total_por_item}</td>
+                </tr>
+                </table>
+                """
+                totales_lote.append(total_por_tipo.copy())
+                grand_total_lote.append(total_por_tipo.copy())
+                total_por_tipo = defaultdict(float)
+
+                # Calcular los totales de Header y Shelf para el lote actual
+                totales_headers = sum(l['Header'] for l in totales_lote)
+                totales_shelfs = sum(l['Shelf'] for l in totales_lote)
+                total_option = totales_headers + totales_shelfs
+                print(lote, " HEADER T: ", totales_headers)
+                print(lote, " SHELFS T: ", totales_shelfs)
+                print(lote, " TotalOption T: ", total_option)
+
+                # Reiniciar los totales a cero para el próximo lote
+                totales_lote = []
+                totales_headers = 0
+                totales_shelfs = 0
+
+        contenido_pdf += '</div></body></html>'
 
         pdfkit_options = {
             'page-size': 'A4',

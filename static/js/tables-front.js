@@ -281,7 +281,7 @@ $(document).ready(function() {
 
         // Agregar el valor de 'Total Quantity' al objeto currentBatchItems
         currentBatchItems.push({
-            type: 'Mandatory KITS',
+            type: 'Mandatory items',
             size: formattedSize,
             quantity: totalQuantity,
         });
