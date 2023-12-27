@@ -161,7 +161,7 @@ def generar_pdf():
             <html>
             <head>
                 <meta charset="UTF-8">
-                <title>PDF</title>
+                <title>Smart Budget PopAtelier</title>
                 <style>
                     header {{
                         text-align: center;
@@ -307,7 +307,7 @@ def generar_pdf():
             <h2 class="headers-doc">Smart Display Kit: </h2>
             <hr>
             <div class="table-container">
-            <h3 class="">Option 1: </h3>
+            <h3 class="">Option 0: </h3>
             <table>
                 <tr>
                     <th>Quantity</th>
@@ -399,79 +399,124 @@ def generar_pdf():
 
             
             # Crear un diccionario con la información del lote actual y agregarlo al arreglo
-            if tipo != "Mandatory items":
+            if(tipo!="Mandatory items"):
+                precio_por_item = precios_por_tamano.get(tamano, 0)
+                precio_total_por_item = precio_por_item * cantidad
                 informacion_lote_actual = {
                     'tipo': tipo,
                     'tamano': tamano,
-                    'cantidad': cantidad
-                    # Puedes agregar más información si es necesaria
+                    'cantidad': cantidad,
+                    'precio_por_item': precio_por_item,
+                    'precio_total_por_item': precio_total_por_item
+                        # Puedes agregar más información si es necesaria
                 }
     
                 informacion_lotes.append(informacion_lote_actual)
-                print("INFORMACION de lotes ", informacion_lotes)
-
-           
-
-            precio_por_item = precios_por_tamano.get(tamano, 0)
-            precio_total_por_item = precio_por_item * cantidad
-            print("COL: ", cantidad, tipo, tamano, precio_por_item, precio_total_por_item)
+            else:
+                totalM = totalFixed * cantidad
+                totalMF = "${:,.2f}".format(totalM)
+                informacion_lote_actual = {
+                    'tipo': tipo,
+                    'tamano': "---",
+                    'cantidad': cantidad,
+                    'precio_por_item': totalFixed,
+                    'precio_total_por_item': totalMF
+                        # Puedes agregar más información si es necesaria
+                }
+                informacion_lotes.append(informacion_lote_actual)
 
             if tipo in ('Header', 'Shelf'):
                 total_por_tipo[tipo] += precio_total_por_item
+                totales_lote.append(total_por_tipo.copy())
+                total_por_tipo = defaultdict(float)
+                # Reiniciar los totales a cero para el próximo lote
+                totales_lote = []
+                totales_headers = 0
+                totales_shelfs = 0
                 
-            elif tipo == 'Mandatory items':
-                contador += 1
-                contenido_pdf += f"""<h3 class=''>Option: {contador}</h3>
+        print("INFORMACION de lotes ", informacion_lotes)
+
+        cont = 0
+        option = 0
+        headerst = 0
+        shelfst = 0
+        grand_total_hsm = 0
+        for lot in informacion_lotes:
+            tipoL = lot['tipo']
+            tamanoL = lot['tamano']
+            cantidadL = lot['cantidad']
+            precio_por_itemL = lot['precio_por_item']
+            precio_total_por_itemL = lot['precio_total_por_item']
+
+            if cont == 0:
+                option += 1
+                contenido_pdf += f"""
+                <h3 class="">Option {option}: </h3>
                 <table>
                 <tr>
                     <th>Quantity</th>
                     <th>Type</th>
                     <th>Size</th>
                     <th>Price per item</th>
-                    <th> Total price per item</th>
+                    <th>Total price per item</th>
                 </tr> """
-                for lot in informacion_lotes:
-                    tipoL = lot['tipo']
-                    tamanoL = lot['tamano']
-                    cantidadL = lot['cantidad']
-                    print("LOTE DE LOTES: ", tipoL, tamanoL, cantidadL)
-                    contenido_pdf += f"""
-                    <tr>
-                        <td>{tipoL}</td>
-                        <td>{tamanoL}</td>
-                        <td>{cantidadL}</td>
-                        <td>0</td>
-                        <td class="total-left">0</td>
-                    </tr>
-                    """
-                
-                
+            if tipoL in ('Header', 'Shelf'):
+                if(tipoL == "Header"):
+                    headerst += precio_total_por_itemL
+                else:
+                    shelfst += precio_total_por_itemL
                 contenido_pdf += f"""
                 <tr>
-                    <td>{cantidad}</td>
-                    <td>{tipo}</td>
-                    <td>{tamano}</td>
-                    <td>${precio_por_item}</td>
-                    <td class="total-left">${precio_total_por_item}</td>
-                </tr>
-                </table>
+                    <td>{cantidadL}</td>
+                    <td>{tipoL}</td>
+                    <td>{tamanoL}</td>
+                    <td>{precio_por_itemL}</td>
+                    <td class="total-left">{precio_total_por_itemL}</td>
+                </tr> """
+                cont = 1
+            elif tipoL == "Mandatory items":
+                # Realizar el cálculo del 'grand_total_hsm'
+                grand_total_hsm = headerst + shelfst + cantidadL * totalFixed
+
+                # Formatear con comas como separadores de miles
+                grand_total_hsm_formatted = "{:,}".format(grand_total_hsm)
+                shelfst_formatted = "{:,}".format(shelfst)
+                headerst_formatted = "{:,}".format(headerst)
+
+
+                contenido_pdf += f"""
+                <tr>
+                    <td>{cantidadL}</td>
+                    <td>{tipoL}</td>
+                    <td>{tamanoL}</td>
+                    <td>{precio_por_itemL}</td>
+                    <td class="total-left">{precio_total_por_itemL}</td>
+                </tr> 
                 """
-                totales_lote.append(total_por_tipo.copy())
-                grand_total_lote.append(total_por_tipo.copy())
-                total_por_tipo = defaultdict(float)
-
-                # Calcular los totales de Header y Shelf para el lote actual
-                totales_headers = sum(l['Header'] for l in totales_lote)
-                totales_shelfs = sum(l['Shelf'] for l in totales_lote)
-                total_option = totales_headers + totales_shelfs
-                print(lote, " HEADER T: ", totales_headers)
-                print(lote, " SHELFS T: ", totales_shelfs)
-                print(lote, " TotalOption T: ", total_option)
-
-                # Reiniciar los totales a cero para el próximo lote
-                totales_lote = []
-                totales_headers = 0
-                totales_shelfs = 0
+                contenido_pdf += f"""
+                <tr>
+                    <td><strong>Smart Display</strong></td>
+                    <td class="total-left" colspan="4"><strong>{cantidadL}</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>Headers Total</strong></td>
+                    <td class="total-left" colspan="4"><strong>$ {headerst_formatted}</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>Shelfs Total</strong></td>
+                    <td class="total-left" colspan="4"><strong>$ {shelfst_formatted}</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>Total Option 1</strong></td>
+                    <td class="total-left" colspan="4"><strong>$ {grand_total_hsm_formatted}</strong></td>
+                </tr>
+                """
+                headerst = 0
+                shelfst = 0
+                grand_total_hsm = 0
+                cont = 0  # Establecer cont a 1, asumo que esa es tu intención
+                contenido_pdf += f"""</table> """
+            
 
         contenido_pdf += '</div></body></html>'
 

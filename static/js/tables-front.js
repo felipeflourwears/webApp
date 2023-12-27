@@ -23,7 +23,7 @@ function generarPDFLF() {
                 const url = window.URL.createObjectURL(new Blob([blob]));
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'mi_pdf.pdf';
+                a.download = 'smart_budget_popatelier.pdf';
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
