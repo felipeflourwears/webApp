@@ -11,6 +11,20 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
+def calcular_descuento_por_lotes(cantidad_lotes):
+    if 150 <= cantidad_lotes <= 500:
+        return 0.00  # Sin descuento
+    elif 501 <= cantidad_lotes <= 1000:
+        return 0.02  # Descuento del 2%
+    elif 1001 <= cantidad_lotes <= 2000:
+        return 0.035  # Descuento del 3.5%
+    elif 2001 <= cantidad_lotes <= 3000:
+        return 0.05  # Descuento del 5%
+    elif cantidad_lotes > 3000:
+        return 0.075  # Descuento del 7.5%
+    else:
+        return 0 
+
 @app.route('/pdf', methods=['POST'])
 def generar_pdf_desde_datos():
     datos_recibidos = request.json.get('datos')
@@ -307,88 +321,6 @@ def generar_pdf():
             <h2 class="headers-doc">Smart Display Kit: </h2>
             <hr>
             <div class="table-container">
-            <h3 class="">Option 0: </h3>
-            <table>
-                <tr>
-                    <th>Quantity</th>
-                    <th>Type</th>
-                    <th>Size</th>
-                    <th>Price per item</th>
-                    <th> Total price per item</th>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td>Header</td>
-                    <td>Pitch 2</td>
-                    <td>$ 848.90</td>
-                    <td class="total-left">$ 848.90</td>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td>Header</td>
-                    <td>Pitch 2</td>
-                    <td>$ 848.90</td>
-                    <td class="total-left">$ 848.90</td>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td>Shelf</td>
-                    <td>Pitch 2</td>
-                    <td>$ 848.90</td>
-                    <td class="total-left">$ 848.90</td>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td>Shelf</td>
-                    <td>Pitch 2</td>
-                    <td>$ 848.90</td>
-                    <td class="total-left">$ 848.90</td>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td>Shelf</td>
-                    <td>Pitch 2</td>
-                    <td>$ 848.90</td>
-                    <td class="total-left">$ 848.90</td>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td>Shelf</td>
-                    <td>Pitch 2</td>
-                    <td>$ 848.90</td>
-                    <td class="total-left">$ 848.90</td>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td>Shelf</td>
-                    <td>Pitch 2</td>
-                    <td>$ 848.90</td>
-                    <td class="total-left">$ 848.90</td>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td>Shelf</td>
-                    <td>Pitch 2</td>
-                    <td>$ 848.90</td>
-                    <td class="total-left">$ 848.90</td>
-                </tr>
-                <tr>
-                    <td><strong>Smart Display</strong></td>
-                    <td class="total-left" colspan="4"><strong>5</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>Headers Total</strong></td>
-                    <td class="total-left" colspan="4"><strong>$15,000</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>Shelfs Total</strong></td>
-                    <td class="total-left" colspan="4"><strong>$15,000</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>Total Option 1</strong></td>
-                    <td class="total-left" colspan="4"><strong>$30,000</strong></td>
-                </tr>
-            </table>
         """
 
         for lote in datos_recibidos:
@@ -414,7 +346,7 @@ def generar_pdf():
                 informacion_lotes.append(informacion_lote_actual)
             else:
                 totalM = totalFixed * cantidad
-                totalMF = "${:,.2f}".format(totalM)
+                totalMF = "${:,.3f}".format(totalM)
                 informacion_lote_actual = {
                     'tipo': tipo,
                     'tamano': "---",
@@ -441,6 +373,7 @@ def generar_pdf():
         headerst = 0
         shelfst = 0
         grand_total_hsm = 0
+        gran_total_smart_display = 0
         for lot in informacion_lotes:
             tipoL = lot['tipo']
             tamanoL = lot['tamano']
@@ -475,13 +408,17 @@ def generar_pdf():
                 </tr> """
                 cont = 1
             elif tipoL == "Mandatory items":
+                headerst *= cantidadL
+                shelfst *= cantidadL
                 # Realizar el cálculo del 'grand_total_hsm'
+                gran_total_smart_display += headerst
+                gran_total_smart_display += shelfst
                 grand_total_hsm = headerst + shelfst + cantidadL * totalFixed
 
                 # Formatear con comas como separadores de miles
-                grand_total_hsm_formatted = "{:,}".format(grand_total_hsm)
-                shelfst_formatted = "{:,}".format(shelfst)
-                headerst_formatted = "{:,}".format(headerst)
+                grand_total_hsm_formatted = "{:,.3f}".format(grand_total_hsm)
+                shelfst_formatted = "{:,.3f}".format(shelfst)
+                headerst_formatted = "{:,.3f}".format(headerst)
 
 
                 contenido_pdf += f"""
@@ -490,14 +427,18 @@ def generar_pdf():
                     <td>{tipoL}</td>
                     <td>{tamanoL}</td>
                     <td>{precio_por_itemL}</td>
-                    <td class="total-left">{precio_total_por_itemL}</td>
+                    <td class="total-left"><strong>{precio_total_por_itemL}</strong></td>
                 </tr> 
                 """
-                contenido_pdf += f"""
+
+                #contenido_pdf
+                """
                 <tr>
                     <td><strong>Smart Display</strong></td>
                     <td class="total-left" colspan="4"><strong>{cantidadL}</strong></td>
                 </tr>
+                """
+                contenido_pdf += f"""
                 <tr>
                     <td><strong>Headers Total</strong></td>
                     <td class="total-left" colspan="4"><strong>$ {headerst_formatted}</strong></td>
@@ -507,7 +448,7 @@ def generar_pdf():
                     <td class="total-left" colspan="4"><strong>$ {shelfst_formatted}</strong></td>
                 </tr>
                 <tr>
-                    <td><strong>Total Option 1</strong></td>
+                    <td><strong>Total Option {option}</strong></td>
                     <td class="total-left" colspan="4"><strong>$ {grand_total_hsm_formatted}</strong></td>
                 </tr>
                 """
@@ -516,7 +457,74 @@ def generar_pdf():
                 grand_total_hsm = 0
                 cont = 0  # Establecer cont a 1, asumo que esa es tu intención
                 contenido_pdf += f"""</table> """
-            
+
+        ##Totales Formatted
+        gran_total_smart_display_formatted = "{:,.3f}".format(gran_total_smart_display)
+
+        contenido_pdf += f"""
+        <hr>
+        <br>
+            <div class="grand-total">
+                <table>
+                    <tr>
+                        <th class="feauture-total">Total mandatory items:</th>
+                        <td class="feauture-total"><strong>$ {totalMandatoryItems}</strong></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="grand-total">
+                <table>
+                    <tr>
+                        <th class="feauture-total">Total smart display kits:</th>
+                        <td class="feauture-total"><strong>$ {gran_total_smart_display_formatted}</strong></td>
+                    </tr>
+                </table>
+            </div>
+            """
+        grand_total = 0
+        totalMandatoryItems = totalMandatoryItems.replace(',', '')
+        # Convertir el número limpio a un tipo de dato float
+        tMandatoryItems = float(totalMandatoryItems)
+        grand_total = gran_total_smart_display + tMandatoryItems
+
+        if (quantityMandatoryItems <= 500):
+            grand_total_formatted = "{:,.3f}".format(grand_total)
+            contenido_pdf += f"""
+            <div class="grand-total">
+                <table>
+                    <tr>
+                        <th class="feauture-total">Grand Total:</th>
+                        <td class="feauture-total"><strong>$ {grand_total_formatted}</strong></td>
+                    </tr>
+                </table>
+            </div>
+            """
+        else:
+            print("d%: ", calcular_descuento_por_lotes(quantityMandatoryItems))
+            discountGet = calcular_descuento_por_lotes(quantityMandatoryItems)
+            discount = grand_total * discountGet
+            grand_total_discount = grand_total - discount
+            grand_total_discount_formatted = "{:,.3f}".format(grand_total_discount)
+            discount_formatted = "{:,.3f}".format(discount)
+            contenido_pdf += f"""
+
+            <div class="grand-total">
+                <table>
+                    <tr>
+                        <th class="feauture-total">Discount:</th>
+                        <td class="feauture-total"><strong>-$ {discount_formatted}</strong></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="grand-total">
+                <table>
+                    <tr>
+                        <th class="feauture-total">Grand Total:</th>
+                        <td class="feauture-total"><strong>$ {grand_total_discount_formatted}</strong></td>
+                    </tr>
+                </table>
+            </div>
+            """
 
         contenido_pdf += '</div></body></html>'
 
