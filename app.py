@@ -3,7 +3,8 @@ import pdfkit
 import os
 import base64
 from collections import defaultdict
-
+import datetime
+import random
 
 app = Flask(__name__)
 
@@ -41,6 +42,14 @@ def generar_pdf_desde_datos():
 
 @app.route('/generar_pdf', methods=['POST'])
 def generar_pdf():
+
+    # Obtener la fecha y hora actual
+    now = datetime.datetime.now()
+    date = now.strftime("%d/%m/%Y")
+
+    # Formatear la fecha y hora actual según tu especificación
+    formatted_date = now.strftime("%d%m%Y%H%M%S") + '-' + str(random.randint(100, 999))
+
     #Data Frontend
     datos_recibidos = request.json.get('datos')
 
@@ -265,6 +274,16 @@ def generar_pdf():
                     .feauture-total {{
                         font-size: 20px;
                     }}
+                    .termsh{{
+                        font-size: 24px; /* Tamaño de fuente del encabezado */
+                        color: #333; /* Color del texto */
+                       
+                    }}
+                    /* Estilos para el párrafo con la clase "terms" */
+                    p.terms {{
+                        font-size: 16px; /* Tamaño de fuente del párrafo */
+                        color: #666; /* Color del texto */
+                    }}
                 </style>
             </head>
             <body>
@@ -272,8 +291,8 @@ def generar_pdf():
                     <img src="data:image/jpeg;base64,{img_base64}" alt="Logo"> <!-- Imagen incrustada en formato base64 -->
                     <div class="info">
                         <p><strong>POP ATELIER LLC</strong></p>
-                        <p><strong>Concept:</strong> Quotation</p>
-                        <p><strong>Date:</strong> 5/12/2023</p>
+                        <p><strong>Date: </strong>{date}</p>
+                        <p><strong>ID: </strong>{formatted_date}</p>
                     </div>
                 </header>
                 <div class="table-container">
@@ -525,6 +544,12 @@ def generar_pdf():
                 </table>
             </div>
             """
+
+        contenido_pdf += f"""
+        <hr>
+        <h1 class='termsh'>Terms and conditions</h1>
+        <p class="terms">This is just an estimate, for a quote please contact PopAtelier.</p>
+        """
 
         contenido_pdf += '</div></body></html>'
 

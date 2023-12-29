@@ -1,3 +1,49 @@
+## Access to server
+```bash
+ssh -i key.pem ubuntu@44.209.162.29
+```
+
+### Configure to SSH connections 
+```bash
+sudo nano /etc/ssh/sshd_config
+Enable line -->#Port 22
+sudo ufw allow 22/tcp
+sudo systemctl restart sshd
+sudo systemctl status sshd
+sudo ufw app list
+```
+
+### Configure Apache
+```bash
+sudo apt install apache2
+sudo ufw app list --->Available applications:
+  Apache
+  Apache Full
+  Apache Secure
+  OpenSSH
+sudo ufw enable
+sudo ufw allow 'Apache'
+sudo ufw status --->Output
+Status: active
+sudo systemctl status apache2
+
+sudo systemctl stop apache2 ------>   Detener apache
+sudo systemctl restart apache2 ---> Reiniciar Apache
+
+sudo apt-get install libapache2-mod-wsgi-py3 ---> Module WSGI Apache
+```
+
+### Scripts from bashrc
+```bash
+nano ~/.bashrc
+export PATH="$HOME/.local/bin:$PATH"
+source ~/.bashrc
+```
+
+
+
+
+
 ```bash
 import sys
 import os
