@@ -69,6 +69,7 @@ def generar_pdf():
     with open(ruta_imagen, 'rb') as img_file:
         img_base64 = base64.b64encode(img_file.read()).decode('utf-8')
 
+
     #Obligatory Requirements
    
     video_procesor = 377.988
@@ -422,8 +423,8 @@ def generar_pdf():
                     <td>{cantidadL}</td>
                     <td>{tipoL}</td>
                     <td>{tamanoL}</td>
-                    <td>{precio_por_itemL}</td>
-                    <td class="total-left">{precio_total_por_itemL}</td>
+                    <td>$ {precio_por_itemL}</td>
+                    <td class="total-left">$ {precio_total_por_itemL}</td>
                 </tr> """
                 cont = 1
             elif tipoL == "Mandatory items":
@@ -445,7 +446,7 @@ def generar_pdf():
                     <td>{cantidadL}</td>
                     <td>{tipoL}</td>
                     <td>{tamanoL}</td>
-                    <td>{precio_por_itemL}</td>
+                    <td>$ {precio_por_itemL}</td>
                     <td class="total-left"><strong>{precio_total_por_itemL}</strong></td>
                 </tr> 
                 """

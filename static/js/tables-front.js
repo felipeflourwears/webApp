@@ -158,7 +158,7 @@ $(document).ready(function() {
                 '<th>Size</th>' +
                 '<th>Quantity</th>' +
                 '<th>Price per Item</th>' +
-                '<th>Total price &nbsp; &nbsp; <button class="btn delete-batch-btn btn-danger" data-batch="' + i + '"><i class="bi bi-trash"></i></button></th>' +
+                '<th>Total price &nbsp; &nbsp; <button type="button" class="btn delete-batch-btn btn-danger" data-batch="' + i + '"><i class="bi bi-trash"></i></button></th>' +
                 '</tr></thead>');
 
                 table.append(thead);
@@ -207,18 +207,32 @@ $(document).ready(function() {
        
     }
 
-
-
     // Función para eliminar un lote al hacer clic en el botón "Delete Batch"
     $(document).on('click', '.delete-batch-btn', function() {
         var batchNumber = $(this).data('batch');
-        var confirmation = confirm('Are you sure delete this batch ' + batchNumber + '?');
-
-        if (confirmation) {
-            localStorage.removeItem('itemsData' + batchNumber);
-            updateDataDisplay();
-        }
+        
+        // Mostrar una ventana de confirmación utilizando SweetAlert2 (Swal)
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'Do you want to delete this batch ' + batchNumber + '?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                localStorage.removeItem('itemsData' + batchNumber);
+                updateDataDisplay();
+                Swal.fire(
+                    'Deleted!',
+                    'Batch ' + batchNumber + ' has been deleted.',
+                    'success'
+                );
+            }
+        });
     });
+
 
 
     $('#addToListBtn').click(function() {
