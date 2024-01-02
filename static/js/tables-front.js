@@ -1,3 +1,17 @@
+function confirmarGenerarPDF() {
+    Swal.fire({
+        title: 'Are you sure you want to export the PDF?',
+        text: 'You can check the order details in the bottom part of the screen.',
+        showCancelButton: true,
+        confirmButtonText: 'Generate PDF',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            generarPDFLF(); // Llamar a la función para generar el PDF si se confirma
+        }
+    });
+}
+
 function generarPDFLF() {
     var allBatchData = []; // Obtener datos del Local Storage
     for (var i = 1; i < currentBatch; i++) {
