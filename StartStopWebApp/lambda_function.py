@@ -13,8 +13,8 @@ def lambda_handler(event, context):
     print("Horario Actal: ", current_time)
 
     # Establece el rango horario de encendido y apagado del servidor
-    start_time = datetime.strptime('12:30:00', '%H:%M:%S').time()
-    stop_time = datetime.strptime('12:35:00', '%H:%M:%S').time()
+    start_time = datetime.strptime('08:30:00', '%H:%M:%S').time()
+    stop_time = datetime.strptime('21:00:00', '%H:%M:%S').time()
 
     # Verifica si la hora actual está dentro del rango para encender o apagar el servidor
     if start_time <= current_time <= stop_time:
