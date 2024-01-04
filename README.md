@@ -112,3 +112,19 @@ def lambda_handler(event, context):
 ### Example to interact with Schedule Server
 
 ![Ruta a lambda_function.py](StartStopWebApp/lambda_function.py)
+
+### Expresion Cron
+The cron expression that describes the execution of a task from Monday to Friday at 8:35 a.m. and 9:05 p.m. would be as follows:
+```bash
+cron(35 8,21 ? * MON-FRI *)
+
+```
+This expression breaks down as follows:
+
+35 represents the minute (8:35 a.m. and 9:05 p.m.).
+8,21 represents the hour (8 a.m. and 9 p.m.).
+? is used instead of specifying the day of the month.
+
+for the month (all months).
+MON-FRI for the days of the week (Monday to Friday).
+Therefore, with this cron expression, the task will run on Mondays to Fridays at 8:35 a.m. and 9:05 p.m.
