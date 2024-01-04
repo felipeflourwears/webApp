@@ -1,0 +1,34 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": [
+				"logs:CreateLogGroup",
+				"ec2:StartInstances",
+				"ec2:StopInstances"
+			],
+			"Resource": "arn:aws:logs:us-east-1:563869797788:*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"logs:CreateLogStream",
+				"logs:PutLogEvents"
+			],
+			"Resource": [
+				"arn:aws:logs:us-east-1:563869797788:log-group:/aws/lambda/myReloadWebApp:*"
+			]
+		},
+		{
+			"Effect": "Allow",
+			"Action": "ec2:StopInstances",
+			"Resource": "arn:aws:ec2:us-east-1:563869797788:instance/i-0a00f85d3a5988589"
+		},
+		{
+			"Effect": "Allow",
+			"Action": "ec2:StartInstances",
+			"Resource": "arn:aws:ec2:us-east-1:563869797788:instance/i-0a00f85d3a5988589"
+		}
+	]
+}
