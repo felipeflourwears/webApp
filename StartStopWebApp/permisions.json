@@ -23,12 +23,12 @@
 		{
 			"Effect": "Allow",
 			"Action": "ec2:StopInstances",
-			"Resource": "arn:aws:ec2:us-east-1:563869797788:instance/i-0a00f85d3a5988589"
+			"Resource": "arn:aws:ec2:us-east-1:563869797788:instance/i-037b9aa7696865897"
 		},
 		{
 			"Effect": "Allow",
 			"Action": "ec2:StartInstances",
-			"Resource": "arn:aws:ec2:us-east-1:563869797788:instance/i-0a00f85d3a5988589"
+			"Resource": "arn:aws:ec2:us-east-1:563869797788:instance/i-037b9aa7696865897"
 		}
 	]
 }

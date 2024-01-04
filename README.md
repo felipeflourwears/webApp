@@ -71,12 +71,12 @@ from app import app as application
 
 ### Configure AWS Lambda Function
 
-![Ruta a lambda_function.py](StartStopWebApp)
+![ProyectFunctionLambda](StartStopWebApp)
 
 To start and stop an EC2 instance, create a function using Python 3.8 with x86 architecture. Adjust permissions in the "Permissions" tab under "Roles" to modify the EC2 instance's status
 
 ### Permisiones
-![Ruta a lambda_function.py](StartStopWebApp/permisions.json)
+![permisions.json](StartStopWebApp/permisions.json)
 
 
 #### Example basic to init EC2 instance
