@@ -104,6 +104,11 @@ var totalFixed;
 // Calcular la suma de los precios
 totalFixed = video_procesor + freight_import_taxes + install + cms + noc;
 
+var formattedTotalFixed = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+}).format(totalFixed.toFixed(3));
+
 
 $(document).ready(function() {
 
@@ -113,6 +118,7 @@ $(document).ready(function() {
         var totalPriceDisplay = $('#totalPriceDisplay'); // Obtener el div para mostrar el precio total
         var totalAllBatchesPrice = 0; // Inicializar el precio total de todos los lotes
         var cantidadLotes = 0; // Inicializar la cantidad de lotes
+        var totalitems = 0; 
         
         
         dataDisplay.empty(); // Limpiar el contenido actual
@@ -158,7 +164,7 @@ $(document).ready(function() {
                 '<th>Size</th>' +
                 '<th>Quantity</th>' +
                 '<th>Price per Item</th>' +
-                '<th>Total price &nbsp; &nbsp; <button type="button" class="btn delete-batch-btn btn-danger" data-batch="' + i + '"><i class="bi bi-trash"></i></button></th>' +
+                '<th>Total price per kit &nbsp; &nbsp; <button type="button" class="btn delete-batch-btn btn-danger" data-batch="' + i + '"><i class="bi bi-trash"></i></button></th>' +
                 '</tr></thead>');
 
                 table.append(thead);
@@ -172,22 +178,34 @@ $(document).ready(function() {
                     var row = $('<tr></tr>');
                     for (var key in item) {
                         if (item.hasOwnProperty(key)) {
-                        
+                            
                             if (item[key].indexOf("Pitch") !== -1) {
                                 var stringWithoutLastFive = item[key].slice(0, -6);
                                 row.append('<td>' + stringWithoutLastFive + '</td>');
-                            }else{
+                            }else if(item[key]=='Mandatory items'){
+                                row.append('<td>' + item[key] + '</td>');
+                                row.append('<td>----</td>');
+                            }else if(/\$/.test(item[key])){
+                                row.append('<td>'+formattedTotalFixed+'</td>');
+                            }
+                            else if(item[key] !== 'Mandatory items') {
                                 row.append('<td>' + item[key] + '</td>');
                             }
                         }
                     }
+                    
+                    
 
                     // Agregar columna para el precio total por tipo y tamaño
                     var itemKey = item.size;
+
+                    //Contador perkit
+                    
                     
                     if (preciosPorSeleccion.hasOwnProperty(itemKey)) {
                         var pricePerItem = preciosPorSeleccion[itemKey];
                         var totalForItem = pricePerItem * item.quantity;
+                        totalitems += totalForItem
 
                         // Formatear los números con comas como separadores de miles
                         var formattedPricePerItem = pricePerItem.toLocaleString('en-US');
@@ -195,10 +213,48 @@ $(document).ready(function() {
 
                         row.append('<td> $ ' + formattedPricePerItem + '</td>');
                         row.append('<td><strong>$ ' + formattedTotalForItem + '</strong></td>');
-                    }
+                    }else{
+                        tf = item.quantity * totalFixed
+                        totalitems += tf
+                        var tf_formatted = new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD'
+                        }).format(tf.toFixed(3));
 
+                        row.append('<td><strong>' + tf_formatted + '</strong></td>');
+        
+                    }
+                    
+                    
+                    //else working
                     tbody.append(row);
+                    
                 });
+
+
+                //Formatear totalitems
+                var formatted_totalitems = new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD'
+                }).format(totalitems.toFixed(3));
+
+                // Agregar fila "Total price per kit"
+                var totalPriceRow = $('<tr></tr>');
+                var totalPriceCell = $('<td colspan="4" style="text-align: right;"><strong>Total price per kit:</strong></td>');
+
+                // Agregar columna para el precio total por kit
+                var priceTotalCell = $('<td></td>');
+                // Aquí debes reemplazar `$$$precio` con la variable que almacena el precio total por kit
+                var priceStrong = $('<strong></strong>').text(formatted_totalitems); // Usa la variable en lugar del texto fijo
+                priceTotalCell.append(priceStrong);
+
+                //Reiniciar contador
+                totalitems = 0
+                
+                totalPriceRow.append(totalPriceCell);
+                totalPriceRow.append(priceTotalCell);
+
+                tbody.append(totalPriceRow);
 
                 table.append(tbody);
                 dataDisplay.append(table);
@@ -292,12 +348,6 @@ $(document).ready(function() {
         // Calcula el valor total multiplicando totalQuantity por totalFixed
         const totalValue = totalQuantity * totalFixed;
 
-        // Formatea totalQuantity como cantidad sin símbolo de dólar
-        const formattedTotalQuantity = totalQuantity.toLocaleString('en-US', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-        });
-
         // Formatea el valor total como cantidad monetaria
         const formattedTotalValue = '$' + totalValue.toLocaleString('en-US', {
         minimumFractionDigits: 2,
@@ -310,8 +360,8 @@ $(document).ready(function() {
         // Agregar el valor de 'Total Quantity' al objeto currentBatchItems
         currentBatchItems.push({
             type: 'Mandatory items',
-            size: formattedSize,
             quantity: totalQuantity,
+            size: formattedSize
         });
 
          // Restablecer el valor del input a '1' para el próximo lote
